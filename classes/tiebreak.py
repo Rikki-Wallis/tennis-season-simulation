@@ -20,7 +20,7 @@ class Tiebreak:
         self.returner = returner
 
         # Points
-        self.score = (0, 0)
+        self.score = [0, 0]
         self.pointProgression = [0, 15, 30, 40, ("Hold", "Break")]
         self.winner = None
 
@@ -36,22 +36,15 @@ class Tiebreak:
 
         # Simulate game
         while True:
-
             # Swapping server and returner
             if pointNumber % 2 == 1:
-                returnerTemp = returner
-                serverTemp = server
-                server = returnerTemp
-                returner = serverTemp
+                server, returner = returner, server
 
                 # Swap score to display server first
-                self.score = (self.score[1], self.score[0])
+                self.score = [self.score[1], self.score[0]]
 
             # Simulate point
-            sWin = (server.serveStrength * server.form) / (
-                server.serveStrength * server.form
-                + returner.returnStrength * returner.form
-            )
+            sWin = (server.serveStrength * server.form) / ( server.serveStrength * server.form + returner.returnStrength * returner.form )
 
             if np.random.uniform(0, 1) <= sWin:
                 self.score[0] += 1
@@ -59,9 +52,7 @@ class Tiebreak:
                 self.score[1] += 1
 
             # Check if win is present (Assumes the first score is that of the current server)
-            if (self.score[0] >= 7 or self.score[1] >= 7) and abs(
-                self.score[0] - self.score[1]
-            ) >= 2:
+            if (self.score[0] >= 7 or self.score[1] >= 7) and abs(self.score[0] - self.score[1]) >= 2:
                 # Update correct player
                 if self.score[0] > self.score[1]:
                     self.winner = server
@@ -69,6 +60,16 @@ class Tiebreak:
                     self.winner = returner
 
                 # Break out of while loop
+                break
+            
+            # If the tiebreak score is over 50 pick random winner
+            elif 50 in self.score:
+                if np.random.uniform(0,1) >= 0.5:
+                    self.winner = server
+                    self.score[0] += 1
+                else:
+                    self.winner = returner
+                    self.score[1] += 1
                 break
 
             # increment point number
