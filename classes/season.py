@@ -97,6 +97,7 @@ class Season:
         self.tournamentSchedule = [
             (brisbane_international, hong_kong_open),
             (adelaide_international, auckland),
+            (australian_open),
             (montpellier),
             (dallas_open, rotterdam),
             (marseille, delray_beach, argentina),
