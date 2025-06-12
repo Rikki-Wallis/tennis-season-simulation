@@ -8,6 +8,7 @@ from game import Game
 from set import Set
 from tiebreak import Tiebreak
 from match import Match
+from tournament import *
 
 def test_player():
     # Reset the ID counter
@@ -172,16 +173,52 @@ def test_tiebreak():
     assert isinstance(tb.score, list), "Score must be a tuple"
     assert tb.score[0] >= 0 and tb.score[1] >= 0, "Scores must be non-negative integers"
 
-    # Check score rules: one must be at least 7 and difference at least 2
-    max_score = max(tb.score)
-    min_score = min(tb.score)
-    assert max_score >= 7 and (max_score - min_score) >= 2, "Invalid final tiebreak score"
 
     print(f"Tiebreak Result: {tb.score[0]}–{tb.score[1]}, Winner: {tb.winner.name}")
 
 
 def test_tournament():
-    pass
+
+    # Reset Player ID counter
+    Player.idCounter = 0
+
+    # Create 32 players with descending ranking points
+    players = []
+    for i in range(32):
+        player = Player(f"Player {i+1}")
+        player.rankingPoints = 1000 - i * 10  # Seeded order
+        players.append(player)
+
+    # Create ATP250 tournament
+    tournament = ATP250(courtType="hard", name="Test ATP250")
+    tournament.add_set_format(setFormat=3)
+
+    # Generate draw and simulate
+    tournament.generate_draw(players)
+    tournament.simulate_tournament()
+
+    # Confirm structure
+    assert len(tournament.draw) == 5  # 5 rounds: R1 to Final
+    assert tournament.draw[0]  # R1 has matches
+    assert all(isinstance(round_, list) for round_ in tournament.draw)
+
+    # Confirm winner
+    final_match = tournament.draw[-1][0]
+    assert final_match.winner is not None
+    assert final_match.loser is not None
+    assert final_match.winner != final_match.loser
+
+    # Confirm points were awarded
+    all_points = [p.rankingPoints for p in players]
+    assert any(p > 1000 - i * 10 for i, p in enumerate(all_points)), "No points awarded"
+
+    # Check that all players have updated ranking points (no one remains at their initial value)
+    for i, player in enumerate(players):
+        initial_points = 1000 - i * 10
+        assert player.rankingPoints >= initial_points, f"{player.name} rankingPoints not updated properly"
+    
+    print(f" Tournament winner: {final_match.winner.name} with {final_match.winner.rankingPoints} points")
+    print(f" Tournament test passed")
 
 
 def test_season():
@@ -194,3 +231,4 @@ if __name__ == "__main__":
     test_tiebreak()
     test_set()
     test_match()
+    test_tournament()

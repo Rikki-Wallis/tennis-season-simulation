@@ -28,8 +28,8 @@ class Tournament:
         players = sorted(players, key=lambda player: player.rankingPoints, reverse=True)
 
         # Seperate seeded players and non seeded players
-        seededPlayers = players[: (self.drawsize / 4)]
-        nonSeededPlayers = players[(self.drawsize / 4) :]
+        seededPlayers = players[: (self.drawSize // 4)]
+        nonSeededPlayers = players[(self.drawSize // 4) :]
 
         # Initial draw variables
         self.draw = []
@@ -37,49 +37,38 @@ class Tournament:
         seedExist = True
 
         # Getting first matches for round 1 based off of seedings
-        for match in range(self.drawsize / 2):
+        for match in range(self.drawSize // 2):
             # getting random players that are seeded and not seeded
             if len(seededPlayers) > 0:
-                seededIndex = np.random.random_integers(low=0, high=len(seededPlayers))
-                nonSeededIndex = np.random.random_integers(
-                    low=0, high=len(nonSeededPlayers)
-                )
+                seededIndex = np.random.randint(low=0, high=len(seededPlayers))
+                nonSeededIndex = np.random.randint(low=0, high=len(nonSeededPlayers))
             # Some matches will have two non seeded players playing eachother
             else:
+                seedExist = False
                 while True:
-                    seedExist = False
-
-                    seededIndex = np.random.random_integers(
-                        low=0, high=len(nonSeededPlayers)
-                    )
-                    nonSeededIndex = np.random.random_integers(
-                        low=0, high=len(nonSeededPlayers)
-                    )
+                    seededIndex = np.random.randint(low=0, high=len(nonSeededPlayers))
+                    nonSeededIndex = np.random.randint(low=0, high=len(nonSeededPlayers))
 
                     # Make sure indexes are different
                     if seededIndex != nonSeededIndex:
                         break
-
-            # Appending them to the first round
-            round1.append(
-                Match(
-                    seededPlayers[seededIndex],
-                    nonSeededPlayers[nonSeededIndex],
-                    self.setFormat,
-                )
-            )
-
-            # Deleting random players from their respective lists
+            
+            # Appending to first roudn and deleting random players from their respective lists
             if seedExist:
+                round1.append( Match(seededPlayers[seededIndex], nonSeededPlayers[nonSeededIndex], self.setFormat) )
+                
                 del seededPlayers[seededIndex]
                 del nonSeededPlayers[nonSeededIndex]
             else:
-                del nonSeededPlayers[seededIndex]
-                del nonSeededPlayers[nonSeededIndex]
+                round1.append( Match(nonSeededPlayers[seededIndex], nonSeededPlayers[nonSeededIndex], self.setFormat) )
+                
+                # Always delete the higher index first to avoid shifting
+                for i in sorted([seededIndex, nonSeededIndex], reverse=True):
+                    del nonSeededPlayers[i]
 
         # Creating the rest of the rounds
         self.draw.append(round1)
-        drawSize = self.drawSize
+        drawSize = self.drawSize // 2
         while drawSize != 1:
             # Get next draw size (round 1 has already been added)
             drawSize = drawSize / 2
@@ -115,6 +104,9 @@ class Tournament:
                     # Add points to loser
                     match.loser.increment_points(self.roundPoints[currentRound])
 
+            if completed == True:
+                break
+            
             # Setting up next round
             roundIndex += 1
             drawForNextRound = self.draw[roundIndex]
@@ -136,7 +128,7 @@ class Tournament:
 
 class GrandSlam(Tournament):
     def __init__(self, courtType, name):
-        super.__init__(self, courtType, name)
+        super().__init__(courtType, name)
         self.roundPoints = {
             "R1": 10,
             "R2": 50,
@@ -153,7 +145,7 @@ class GrandSlam(Tournament):
 
 class Master1000(Tournament):
     def __init__(self, courtType, name):
-        super.__init__(self, courtType, name)
+        super().__init__(courtType, name)
         self.roundPoints = {
             "R1": 30,
             "R2": 50,
@@ -169,7 +161,7 @@ class Master1000(Tournament):
 
 class ATP500(Tournament):
     def __init__(self, courtType, name):
-        super.__init__(self, courtType, name)
+        super().__init__(courtType, name)
         self.roundPoints = {
             "R1": 25,
             "R2": 50,
@@ -184,7 +176,7 @@ class ATP500(Tournament):
 
 class ATP250(Tournament):
     def __init__(self, courtType, name):
-        super.__init__(self, courtType, name)
+        super().__init__(courtType, name)
         self.roundPoints = {
             "R1": 13,
             "R2": 25,
