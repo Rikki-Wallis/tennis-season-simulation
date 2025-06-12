@@ -9,6 +9,7 @@ class Match:
         self.player1 = player1
         self.player2 = player2
         self.winner = None
+        self.loser = None
         self.setTarget = 2 if setFormat == 3 else 3
         self.score = (0, 0)
 
@@ -35,8 +36,11 @@ class Match:
             # Checking if there is a winner
             if self.score[0] == self.setTarget:
                 self.winner = self.player1
+                self.loser = self.player2
+
             elif self.score[1] == self.setTarget:
                 self.winner = self.player2
+                self.loser = self.player1
 
     def increment_score(self, player):
         if player == self.player1:
