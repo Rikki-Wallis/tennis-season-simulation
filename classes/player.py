@@ -72,10 +72,10 @@ class Player:
 
         # Player attributes
         self.serveStrength = 58 * np.random.normal(
-            loc=1.0, scale=0.5
+            loc=1.0, scale=0.2
         )  # Tour average of service points won is 58%
         self.returnStrength = 42 * np.random.normal(
-            loc=1.0, scale=0.5
+            loc=1.0, scale=0.2
         )  # Tour average of return points won is 42%
         self.form = np.random.normal(loc=1.0, scale=1)
         self.hardStrength = np.random.normal(loc=1.0, scale=1)
