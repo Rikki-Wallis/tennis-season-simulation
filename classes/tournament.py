@@ -8,18 +8,8 @@ class Tournament:
         self.courtType = courtType
         self.name = name
 
-    def get_points_for_round(self, round):
-        """
-        Method:
-            Returns the points associated for a given round
-
-        Params:
-            round (str): The given round
-
-        Returns:
-            roundPoints (int): The points associated with the round
-        """
-        return self.roundPoints[round]
+    def add_set_format(self, setFormat):
+        self.setFormat = setFormat
 
     def generate_draw(self, players):
         """
@@ -42,7 +32,8 @@ class Tournament:
         nonSeededPlayers = players[(self.drawsize / 4) :]
 
         # Initial draw variables
-        draw = []
+        self.draw = []
+        round1 = []
         seedExist = True
 
         # Getting first matches for round 1 based off of seedings
@@ -70,8 +61,12 @@ class Tournament:
                         break
 
             # Appending them to the first round
-            draw.append(
-                Match(seededPlayers[seededIndex], nonSeededPlayers[nonSeededIndex])
+            round1.append(
+                Match(
+                    seededPlayers[seededIndex],
+                    nonSeededPlayers[nonSeededIndex],
+                    self.setFormat,
+                )
             )
 
             # Deleting random players from their respective lists
@@ -82,19 +77,66 @@ class Tournament:
                 del nonSeededPlayers[seededIndex]
                 del nonSeededPlayers[nonSeededIndex]
 
-        return self.draw
+        # Creating the rest of the rounds
+        self.draw.append(round1)
+        drawSize = self.drawSize
+        while drawSize != 1:
+            # Get next draw size (round 1 has already been added)
+            drawSize = drawSize / 2
+
+            # Inserting empty list to draw as the current round
+            self.draw.append([])
 
     def simulate_tournament(self):
+        # Initialising variables
+        roundIndex = 0
+        completed = False
 
         # Simulate all matches in the tournament
-        while True:
-            for match in self.draw:
+        while completed == False:
+            # Initialising variables
+            nextRoundPlayers = []
+            drawForCurrentRound = self.draw[roundIndex]
+            currentRound = self.rounds[roundIndex]
+
+            # Simulate each match for this round
+            for match in drawForCurrentRound:
+                # Simulate match
                 match.simulate_match()
+
+                if currentRound == "final":
+                    match.winner.increment_points(self.roundPoints["winner"])
+                    match.loser.increment_points(self.roundPoints["finalist"])
+                    completed = True
+                else:
+                    # Add winner to nextRoundPlayers
+                    nextRoundPlayers.append(match.winner)
+
+                    # Add points to loser
+                    match.loser.increment_points(self.roundPoints[currentRound])
+
+            # Setting up next round
+            roundIndex += 1
+            drawForNextRound = self.draw[roundIndex]
+
+            # Creating new matches
+            player1Index = 0
+            player2Index = 1
+            while player1Index < len(nextRoundPlayers):
+                # Fetching players
+                player1 = nextRoundPlayers[player1Index]
+                player2 = nextRoundPlayers[player2Index]
+
+                # Appending match to next round draw
+                drawForNextRound.append(Match(player1, player2, self.setFormat))
+
+                player1Index += 2
+                player2Index += 2
 
 
 class GrandSlam(Tournament):
-    def __init__(self, courtType):
-        super.__init__(self, courtType)
+    def __init__(self, courtType, name):
+        super.__init__(self, courtType, name)
         self.roundPoints = {
             "R1": 10,
             "R2": 50,
@@ -105,12 +147,13 @@ class GrandSlam(Tournament):
             "finalist": 1300,
             "winner": 2000,
         }
+        self.rounds = ["R1", "R2", "R3", "R4", "quarter final", "semi final", "final"]
         self.drawSize = 128
 
 
 class Master1000(Tournament):
-    def __init__(self, courtType):
-        super.__init__(self, courtType)
+    def __init__(self, courtType, name):
+        super.__init__(self, courtType, name)
         self.roundPoints = {
             "R1": 30,
             "R2": 50,
@@ -120,12 +163,13 @@ class Master1000(Tournament):
             "finalist": 650,
             "winner": 1000,
         }
-        self.drawSize = 128
+        self.rounds = ["R1", "R2", "R3", "quarter final", "semi final", "final"]
+        self.drawSize = 64
 
 
 class ATP500(Tournament):
-    def __init__(self, courtType):
-        super.__init__(self, courtType)
+    def __init__(self, courtType, name):
+        super.__init__(self, courtType, name)
         self.roundPoints = {
             "R1": 25,
             "R2": 50,
@@ -134,12 +178,13 @@ class ATP500(Tournament):
             "finalist": 330,
             "winner": 500,
         }
-        self.drawSize = 64
+        self.rounds = ["R1", "R2", "quarter final", "semi final", "final"]
+        self.drawSize = 32
 
 
 class ATP250(Tournament):
-    def __init__(self, courtType):
-        super.__init__(self, courtType)
+    def __init__(self, courtType, name):
+        super.__init__(self, courtType, name)
         self.roundPoints = {
             "R1": 13,
             "R2": 25,
@@ -148,4 +193,5 @@ class ATP250(Tournament):
             "finalist": 165,
             "winner": 250,
         }
-        self.drawSize = 64
+        self.rounds = ["R1", "R2", "quarter final", "semi final", "final"]
+        self.drawSize = 32
