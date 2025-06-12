@@ -5,7 +5,9 @@ Test File
 import numpy as np
 from player import Player
 from game import Game
-
+from set import Set
+from tiebreak import Tiebreak
+from match import Match
 
 def test_player():
     # Reset the ID counter
@@ -93,15 +95,89 @@ def test_game():
         assert np.isclose(np.sum(row), 1), "Absorption probabilities row must sum to 1"
 
 def test_set():
-    pass
+    # Reset player ID counter for consistency
+    Player.idCounter = 0
 
+    # Create two players
+    p1 = Player("Player One")
+    p2 = Player("Player Two")
+
+    # Make both players have high form to reduce randomness
+    p1.form = 1.0
+    p2.form = 1.0
+
+    # Simulate a set
+    tennis_set = Set(p1, p2)
+    next_server = tennis_set.simulate_set()
+
+    # Test that winner is one of the players
+    assert tennis_set.winner in [p1, p2]
+
+    # Test that the set score is valid
+    s1, s2 = tennis_set.score
+    assert (s1 >= 6 or s2 >= 6) or (s1 == 7 or s2 == 7)
+    assert abs(s1 - s2) >= 1
+
+    # Test that next_server tuple is a valid swap of players
+    assert set(next_server) == {p1, p2}
+
+    print(f"Test passed: Set winner is {tennis_set.winner.name}, final score {s1}-{s2}")
 
 def test_match():
-    pass
+    # Reset player ID counter
+    Player.idCounter = 0
+
+    # Create two players with high form to reduce randomness
+    p1 = Player("Player One")
+    p2 = Player("Player Two")
+    p1.form = 1.0
+    p2.form = 1.0
+
+    # Optional: Seed random for reproducibility
+    np.random.seed(42)
+
+    # Simulate a best-of-3 match
+    match = Match(p1, p2, setFormat=3)
+    match.simulate_match()
+
+    # Validate winner/loser
+    assert match.winner in [p1, p2]
+    assert match.loser in [p1, p2]
+    assert match.winner != match.loser
+
+    # Validate score
+    score_p1, score_p2 = match.score
+    assert score_p1 == 2 or score_p2 == 2  # One must win 2 sets
+    assert score_p1 < 3 and score_p2 < 3   # Max 3 sets in best-of-3
+
+    print(f"Test passed: {match.winner.name} defeated {match.loser.name} ({score_p1}-{score_p2})")
 
 
 def test_tiebreak():
-    pass
+    # Reset the ID counter
+    Player.idCounter = 0
+
+    # Create two players
+    p1 = Player("Player One")
+    p2 = Player("Player Two")
+
+    # Create a Tiebreak object
+    tb = Tiebreak(p1, p2)
+
+    # Simulate the tiebreak
+    tb.simulate_tiebreak()
+
+    # Basic assertions
+    assert tb.winner in (p1, p2), "Winner must be one of the players"
+    assert isinstance(tb.score, list), "Score must be a tuple"
+    assert tb.score[0] >= 0 and tb.score[1] >= 0, "Scores must be non-negative integers"
+
+    # Check score rules: one must be at least 7 and difference at least 2
+    max_score = max(tb.score)
+    min_score = min(tb.score)
+    assert max_score >= 7 and (max_score - min_score) >= 2, "Invalid final tiebreak score"
+
+    print(f"Tiebreak Result: {tb.score[0]}–{tb.score[1]}, Winner: {tb.winner.name}")
 
 
 def test_tournament():
@@ -115,3 +191,6 @@ def test_season():
 if __name__ == "__main__":
     test_player()
     test_game()
+    test_tiebreak()
+    test_set()
+    test_match()
