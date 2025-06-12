@@ -11,7 +11,7 @@ class Match:
         self.winner = None
         self.loser = None
         self.setTarget = 2 if setFormat == 3 else 3
-        self.score = (0, 0)
+        self.score = [0, 0]
 
         # Coin toss to see who starting server is
         coinToss = np.random.random_integers(low=1, high=2)
