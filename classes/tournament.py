@@ -43,6 +43,7 @@ class Tournament:
 
         # Initial draw variables
         draw = []
+        seedExist = True
 
         # Getting first matches for round 1 based off of seedings
         for match in range(self.drawsize / 2):
@@ -54,12 +55,19 @@ class Tournament:
                 )
             # Some matches will have two non seeded players playing eachother
             else:
-                seededIndex = np.random.random_integers(
-                    low=0, high=len(nonSeededPlayers)
-                )
-                nonSeededIndex = np.random.random_integers(
-                    low=0, high=len(nonSeededPlayers)
-                )
+                while True:
+                    seedExist = False
+
+                    seededIndex = np.random.random_integers(
+                        low=0, high=len(nonSeededPlayers)
+                    )
+                    nonSeededIndex = np.random.random_integers(
+                        low=0, high=len(nonSeededPlayers)
+                    )
+
+                    # Make sure indexes are different
+                    if seededIndex != nonSeededIndex:
+                        break
 
             # Appending them to the first round
             draw.append(
@@ -67,10 +75,21 @@ class Tournament:
             )
 
             # Deleting random players from their respective lists
-            del seededPlayers[seededIndex]
-            del nonSeededPlayers[nonSeededIndex]
+            if seedExist:
+                del seededPlayers[seededIndex]
+                del nonSeededPlayers[nonSeededIndex]
+            else:
+                del nonSeededPlayers[seededIndex]
+                del nonSeededPlayers[nonSeededIndex]
 
-        return draw
+        return self.draw
+
+    def simulate_tournament(self):
+
+        # Simulate all matches in the tournament
+        while True:
+            for match in self.draw:
+                match.simulate_match()
 
 
 class GrandSlam(Tournament):
