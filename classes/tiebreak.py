@@ -1,3 +1,7 @@
+"""
+Imports
+"""
+
 import numpy as np
 
 
@@ -15,10 +19,6 @@ class Tiebreak:
         self.server = server
         self.returner = returner
 
-        # Markov Chain
-        self.markovChainIndex = self.generate_markov_chain_index()
-        self.markovChain = self.generate_markov_chain()
-
         # Points
         self.score = (0, 0)
         self.pointProgression = [0, 15, 30, 40, ("Hold", "Break")]
@@ -27,14 +27,12 @@ class Tiebreak:
     def simulate_tiebreak(self):
         """
         Method:
-            simulates the tiebreak using monte carlo
+            simulates the tiebreak using monte carlo technique
         """
         # Initialising variables
         pointNumber = 0
         server = self.server
         returner = self.returner
-        servingPlayer = self.server
-        returningPlayer = self.returner
 
         # Simulate game
         while True:
@@ -45,21 +43,33 @@ class Tiebreak:
                 serverTemp = server
                 server = returnerTemp
                 returner = serverTemp
-                
-                servingPlayerTemp = servingPlayer
-                returningPlayerTemp = returningPlayer
-                servingPlayer = returningPlayerTemp
-                returningPlayer = servingPlayerTemp
+
+                # Swap score to display server first
+                self.score = (self.score[1], self.score[0])
 
             # Simulate point
-            sWin = (server.serveStrength * server.form) / (server.serveStrength * server.form
-                    + returner.returnStrength * returner.form)
-            
-            randFloat = np.random.uniform(0,1)
-            
-            if randFloat <= sWin:
-                
-            
-            
+            sWin = (server.serveStrength * server.form) / (
+                server.serveStrength * server.form
+                + returner.returnStrength * returner.form
+            )
+
+            if np.random.uniform(0, 1) <= sWin:
+                self.score[0] += 1
+            else:
+                self.score[1] += 1
+
+            # Check if win is present (Assumes the first score is that of the current server)
+            if (self.score[0] >= 7 or self.score[1] >= 7) and abs(
+                self.score[0] - self.score[1]
+            ) >= 2:
+                # Update correct player
+                if self.score[0] > self.score[1]:
+                    self.winner = server
+                else:
+                    self.winner = returner
+
+                # Break out of while loop
+                break
+
             # increment point number
             pointNumber += 1
