@@ -2,11 +2,12 @@
 import numpy as np
 from match import Match
 
-
 class Tournament:
     def __init__(self, courtType, name):
         self.courtType = courtType
         self.name = name
+        # Default match risk for 3 set tournaments
+        self.matchRisk = 0.03
 
     def add_set_format(self, setFormat):
         self.setFormat = setFormat
@@ -92,6 +93,10 @@ class Tournament:
             for match in drawForCurrentRound:
                 # Simulate match
                 match.simulate_match()
+            
+                # Update both players injuries
+                match.winner.update_fitness(self.matchRisk)
+                match.loser.update_fitness(self.matchRisk)
 
                 if currentRound == "final":
                     match.winner.increment_points(self.roundPoints["winner"])
@@ -119,6 +124,11 @@ class Tournament:
                 player1 = nextRoundPlayers[player1Index]
                 player2 = nextRoundPlayers[player2Index]
 
+                # Checking for injuries (only one player per match gets injured for simplicity)
+                player1.check_injury()
+                if not player1.isInjured:
+                    player2.check_injury()
+                    
                 # Appending match to next round draw
                 drawForNextRound.append(Match(player1, player2, self.setFormat))
 
@@ -141,6 +151,9 @@ class GrandSlam(Tournament):
         }
         self.rounds = ["R1", "R2", "R3", "R4", "quarter final", "semi final", "final"]
         self.drawSize = 128
+        # 5 set tournament so higher match risk
+        self.matchRisk = 0.045
+        self.type = "GrandSlam"
 
 
 class Master1000(Tournament):
@@ -157,6 +170,7 @@ class Master1000(Tournament):
         }
         self.rounds = ["R1", "R2", "R3", "quarter final", "semi final", "final"]
         self.drawSize = 64
+        self.type = "Master1000"
 
 
 class ATP500(Tournament):
@@ -172,6 +186,7 @@ class ATP500(Tournament):
         }
         self.rounds = ["R1", "R2", "quarter final", "semi final", "final"]
         self.drawSize = 32
+        self.type = "ATP500"
 
 
 class ATP250(Tournament):
@@ -187,3 +202,4 @@ class ATP250(Tournament):
         }
         self.rounds = ["R1", "R2", "quarter final", "semi final", "final"]
         self.drawSize = 32
+        self.type = "ATP250"
