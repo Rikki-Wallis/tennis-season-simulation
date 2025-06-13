@@ -19,6 +19,16 @@ class Match:
         self.startingReturner = player2 if coinToss == 1 else player1
 
     def simulate_match(self):
+        # Checking for injuries
+        if self.startingServer.isInjured:
+            self.winner = self.startingReturner
+            self.loser = self.startingServer
+            return None
+        elif self.startingReturner.isInjured:
+            self.winner = self.startingReturner
+            self.loser = self.startingServer
+            return None
+        
         # Initiating starting server and returner
         playerList = [self.startingServer, self.startingReturner]
 
