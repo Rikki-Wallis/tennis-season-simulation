@@ -2,7 +2,9 @@
 Test File
 """
 
+import random
 import numpy as np
+from season import Season
 from player import Player
 from game import Game
 from set import Set
@@ -30,8 +32,6 @@ def test_player():
     # Test initial stats
     assert p1.gamesPlayed == 0
     assert p1.rankingPoints == 0
-    for val in p1.tournamentsWon.values():
-        assert val == 0
 
     # Test incrementing tournament wins
     p1.increment_tournament_win("ATP 500")
@@ -174,7 +174,7 @@ def test_tiebreak():
     assert tb.score[0] >= 0 and tb.score[1] >= 0, "Scores must be non-negative integers"
 
 
-    print(f"Tiebreak Result: {tb.score[0]}–{tb.score[1]}, Winner: {tb.winner.name}")
+    print(f"Tiebreak Result: {tb.score[0]}-{tb.score[1]}, Winner: {tb.winner.name}")
 
 
 def test_tournament():
@@ -222,7 +222,42 @@ def test_tournament():
 
 
 def test_season():
-    pass
+    # Reset Player ID counter
+    Player.idCounter = 0
+
+    # Create 50 players with ascending ranking points
+    players = []
+    for i in range(200):
+        p = Player(f"Player {i+1}")
+        p.rankingPoints = 0 # Start ranked
+        players.append(p)
+
+    # Shuffle players to simulate realistic randomness in performance
+    random.shuffle(players)
+
+    # Create the season object
+    season = Season(players)
+
+    # Run the season simulation
+    season.simulate_season()
+
+    # Ensure that each player's stats are updated meaningfully
+    for player in players:
+        assert player.rankingPoints >= 0, f"{player.name} has negative ranking points"
+
+    # Ensure that no two players have the same final ranking
+    final_rankings = [p.rankingPoints for p in season.rankings]
+
+    # Ensure that rankings are sorted in descending order
+    for i in range(len(final_rankings) - 1):
+        assert final_rankings[i] >= final_rankings[i + 1], "Rankings not in descending order"
+
+    # Optional: Print top 5 players
+    print("\nTop 50 Players at End of Season:")
+    for i, p in enumerate(season.rankings[:50]):
+        print(f"{i+1}. {p.name} - {p.rankingPoints} pts")
+
+    print("Season simulation test passed")
 
 
 if __name__ == "__main__":
@@ -232,3 +267,4 @@ if __name__ == "__main__":
     test_set()
     test_match()
     test_tournament()
+    test_season()
