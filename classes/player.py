@@ -1,6 +1,6 @@
 # Imports
 import numpy as np
-
+import random
 
 class Player:
     # Ensure each new player has a unique ID
@@ -34,12 +34,8 @@ class Player:
         self.playerID = Player.idCounter
 
         # Player attributes
-        self.serveStrength = (
-            58 * serveStrength
-        )  # Tour average of service points won is 58%
-        self.returnStrength = (
-            42 * returnStrength
-        )  # Tour average of return points won is 42%
+        self.serveStrength = ( 58 * serveStrength )  # Tour average of service points won is 58%
+        self.returnStrength = ( 42 * returnStrength )  # Tour average of return points won is 42%
         self.form = form
         self.hardStrength = hardStrength
         self.clayStrength = clayStrength
@@ -71,16 +67,19 @@ class Player:
         self.playerID = Player.idCounter
 
         # Player attributes
-        self.serveStrength = 58 * np.random.normal(
-            loc=1.0, scale=0.2
-        )  # Tour average of service points won is 58%
-        self.returnStrength = 42 * np.random.normal(
-            loc=1.0, scale=0.2
-        )  # Tour average of return points won is 42%
-        self.form = np.random.normal(loc=1.0, scale=1)
-        self.hardStrength = np.random.normal(loc=1.0, scale=1)
-        self.clayStrength = np.random.normal(loc=1.0, scale=1)
-        self.grassStrength = np.random.normal(loc=1.0, scale=1)
+        self.serveStrength = 58 * np.random.normal( loc=1.0, scale=0.2 )  # Tour average of service points won is 58%
+        self.returnStrength = 42 * np.random.normal( loc=1.0, scale=0.2 )  # Tour average of return points won is 42%
+        self.form = np.random.normal(loc=1.0, scale=0.2)
+        self.hardStrength = np.random.normal(loc=1.0, scale=0.2)
+        self.clayStrength = np.random.normal(loc=1.0, scale=0.2)
+        self.grassStrength = np.random.normal(loc=1.0, scale=0.2)
+        
+        # Manage injuries
+        self.fitness = 1.0
+        self.injuryRisk = 0.0
+        self.injuryThreshold = np.random.normal(loc=0.3, scale=0.15)
+        self.injuryProbability = np.random.normal(loc=0.5, scale=0.2)
+        self.isInjured = False
 
         # Player stats
         self.gamesPlayed = 0
@@ -91,6 +90,7 @@ class Player:
             "ATP 500": 0,
             "ATP 250": 0,
         }
+        self.ranking = 0
         self.rankingPoints = 0
 
         # Increment ID counter to ensure every player has a unique ID
@@ -122,3 +122,12 @@ class Player:
             Increments the gamesPlayed attribute
         """
         self.gamesPlayed += 1
+    
+    def update_fitness(self, matchRisk):
+        self.injuryRisk += matchRisk
+        self.fitness = max(0, 1-self.injuryRisk)
+        
+    def check_injury(self):
+        print(f'{self.name} got injured')
+        if self.injuryRisk >= self.injuryThreshold and random.random() < self.injuryProbability:
+            self.isInjured = True
