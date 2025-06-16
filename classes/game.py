@@ -30,16 +30,19 @@ class Game:
         Method:
             Simulates the game
         """
+        # Get index of initial transition value of markov chain to the absorption value
         startIndex = self.markovChainIndex["0-0"]
         holdIndex = self.markovChainIndex["Hold"]
         
+        # Find the fundemental matrix of the Markov Chain
         B, transient_indices, absorbing_indices = self.compute_absorption_probabilities(self.markovChain)
 
+        # Fetch the win percentage of server holding their game from the fundemental matrix
         start_i = np.where(transient_indices == startIndex)[0][0]
         hold_j = np.where(absorbing_indices == holdIndex)[0][0]
-
         sWin = B[start_i, hold_j]
 
+        # Monte Carlo to draw the winner of the game
         if np.random.uniform(0,1) <= sWin:
             self.winner = self.server
         else:
@@ -59,7 +62,7 @@ class Game:
         """
         n = P.shape[0]
 
-        # Identify absorbing states: rows with 1 on the diagonal and zeros elsewhere
+        # Identify absorbing states
         absorbing = np.isclose(P, np.eye(n)).all(axis=1)
 
         # Partition the matrix into Q and R
@@ -87,7 +90,7 @@ class Game:
             simplified to 30-30 as they are essentially the same thing.
 
         Return:
-            markovChain (List(List(float))): The generated markov chain
+            markovChain (np.ndarray): The generated markov chain
         """
         # Obtaining probability that server will win each point based on player attributes
         sWin = (self.server.serveStrength * self.server.form) / (self.server.serveStrength * self.server.form + self.returner.returnStrength * self.returner.form )
@@ -148,4 +151,3 @@ class Game:
                 "Hold": 15,
                 "Break": 16,
             }
-
