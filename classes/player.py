@@ -3,56 +3,6 @@ import numpy as np
 import random
 
 class Player:
-    # Ensure each new player has a unique ID
-    idCounter = 0
-
-    def __init__(
-        self,
-        name,
-        serveStrength,
-        returnStrength,
-        form,
-        hardStrength,
-        clayStrength,
-        grassStrength,
-    ):
-        """
-        Method:
-            init method with adjustable parameters for serve, return strength and form.
-
-        Params:
-            name (str):               The name of the player
-            serveStrength (float):    A multiplier for the players serve effectiveness
-            returnStrength (float):   A multiplier for the players return effectiveness
-            form (float):             A multiplier for the players current form
-            hardStrength (float):     A multiplier for the players strength on hard courts
-            clayStrength (float):     A multiplier for the players strength on clay courts
-            grassStrength (float):    A multiplier for the players strength on grass courts
-        """
-        # Player identity
-        self.name = name
-        self.playerID = Player.idCounter
-
-        # Player attributes
-        self.serveStrength = ( 58 * serveStrength )  # Tour average of service points won is 58%
-        self.returnStrength = ( 42 * returnStrength )  # Tour average of return points won is 42%
-        self.form = form
-        self.hardStrength = hardStrength
-        self.clayStrength = clayStrength
-        self.grassStrength = grassStrength
-
-        # Player Stats
-        self.gamesPlayer = 0
-        self.tournamentsWon = {
-            "Grand Slam": 0,
-            "ATP Final": 0,
-            "Master 1000": 0,
-            "ATP 500": 0,
-            "ATP 250": 0,
-        }
-
-        # Increment ID counter to ensure every player has a unique ID
-        Player.idCounter += 1
 
     def __init__(self, name):
         """
@@ -64,47 +14,23 @@ class Player:
         """
         # Player Identity
         self.name = name
-        self.playerID = Player.idCounter
 
         # Player attributes
         self.serveStrength = 58 * np.random.normal( loc=1.0, scale=0.2 )  # Tour average of service points won is 58%
         self.returnStrength = 42 * np.random.normal( loc=1.0, scale=0.2 )  # Tour average of return points won is 42%
         self.form = np.random.normal(loc=1.0, scale=0.2)
-        self.hardStrength = np.random.normal(loc=1.0, scale=0.2)
-        self.clayStrength = np.random.normal(loc=1.0, scale=0.2)
-        self.grassStrength = np.random.normal(loc=1.0, scale=0.2)
         
         # Manage injuries
         self.fitness = 1.0
         self.injuryRisk = 0.0
-        self.injuryThreshold = np.random.normal(loc=0.3, scale=0.15)
-        self.injuryProbability = np.random.normal(loc=0.5, scale=0.2)
+        self.injuryThreshold = np.random.normal(loc=0.6, scale=0.1)
+        self.injuryProbability = np.random.normal(loc=0.2, scale=0.1)
         self.isInjured = False
+        self.noInjured = 0
 
         # Player stats
-        self.gamesPlayed = 0
-        self.tournamentsWon = {
-            "Grand Slam": 0,
-            "ATP Final": 0,
-            "Master 1000": 0,
-            "ATP 500": 0,
-            "ATP 250": 0,
-        }
         self.ranking = 0
         self.rankingPoints = 0
-
-        # Increment ID counter to ensure every player has a unique ID
-        Player.idCounter += 1
-
-    def increment_tournament_win(self, tournamentType):
-        """
-        Method:
-            Increments the type of tournament the player won
-
-        Params:
-            tournamentType (str): The type of tournament won e.g. ATP 500
-        """
-        self.tournamentsWon[tournamentType] += 1
 
     def increment_points(self, points):
         """
@@ -115,19 +41,29 @@ class Player:
             points (int): The amount of points to increment by
         """
         self.rankingPoints += points
-
-    def increment_games_played(self):
-        """
-        Method:
-            Increments the gamesPlayed attribute
-        """
-        self.gamesPlayed += 1
     
     def update_fitness(self, matchRisk):
-        self.injuryRisk += matchRisk
-        self.fitness = max(0, 1-self.injuryRisk)
+        """
+        Method:
+            Updates the fitness and injury attributes of the player
         
+        Params:
+            matchRisk (float): The risk associated with playing a match
+        """
+        # If match risk is negative we should reduce injury risk instead of increase
+        if matchRisk < 0:
+            self.injuryRisk += matchRisk
+            self.fitness -= 1+matchRisk
+        # Otherwise increase injury risk and update fitness
+        else:
+            self.injuryRisk += matchRisk
+            self.fitness = max(0, 1-self.injuryRisk)
+    
     def check_injury(self):
-        print(f'{self.name} got injured')
+        """
+        Method:
+            Checks if the player has passed their injury threshold and draw a random value
+            to assign if they are injured.
+        """
         if self.injuryRisk >= self.injuryThreshold and random.random() < self.injuryProbability:
             self.isInjured = True
