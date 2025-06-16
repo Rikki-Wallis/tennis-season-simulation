@@ -5,6 +5,15 @@ from set import Set
 
 class Match:
     def __init__(self, player1, player2, setFormat):
+        """
+        Method:
+            init method for match class
+        
+        Params:
+            player1 (Player) - One of the players participating in the match
+            player2 (Player) - One of the players participating in the match
+            setFormat (int) - The format of the set e.g. grand slams are 5 sets and other events are 3
+        """
         # Match attributes
         self.player1 = player1
         self.player2 = player2
@@ -19,7 +28,21 @@ class Match:
         self.startingReturner = player2 if coinToss == 1 else player1
 
     def simulate_match(self):
-        # Checking for injuries
+        """
+        Method:
+            Simulates the match using Monte Carlo
+        """
+        # Checking if any of the players is none and handle withdrawal
+        if self.player1 is None:
+            self.winner = self.player2
+            self.loser = self.player1
+            return None
+        elif self.player2 is None:
+            self.winner = self.player1
+            self.loser = self.player2
+            return None
+        
+        # If one of the players is injured, handle withdrawal
         if self.startingServer.isInjured:
             self.winner = self.startingReturner
             self.loser = self.startingServer
@@ -47,12 +70,23 @@ class Match:
             if self.score[0] == self.setTarget:
                 self.winner = self.player1
                 self.loser = self.player2
+                self.player1.form += 0.1
+                self.player2.form -= 0.1
 
             elif self.score[1] == self.setTarget:
                 self.winner = self.player2
                 self.loser = self.player1
+                self.player1.form -= 0.1
+                self.player2.form += 0.1
 
     def increment_score(self, player):
+        """
+        Method:
+            Increments the match score
+        
+        Params:
+            player (Player) - The player whos score is being incremented
+        """
         if player == self.player1:
             self.score[0] += 1
         else:
