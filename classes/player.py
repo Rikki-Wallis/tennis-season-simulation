@@ -31,6 +31,9 @@ class Player:
         # Player stats
         self.ranking = 0
         self.rankingPoints = 0
+    
+    def set_strategy(self, strategy):
+        self.strategy = strategy
 
     def increment_points(self, points):
         """

@@ -55,7 +55,7 @@ class Season:
                     player = self.rankings[rankingsIndex]
                     
                     # Game Theory decision of whether this particular player should play the tournament
-                    shouldPlay = self.should_play_tournament(player, tournament)
+                    shouldPlay = player.strategy.should_play_tournament(player, tournament, self)
                     
                     # If the player should then register them
                     if shouldPlay:
@@ -83,91 +83,6 @@ class Season:
             self.rankings = sorted(self.rankings, key=lambda player: player.rankingPoints, reverse=True)
             for idx,player in enumerate(self.rankings):
                 player.ranking = idx + 1
-
-
-    def should_play_tournament(self, player, tournament):
-        """
-        Method:
-            Pay off function that decides whether or not a particular player should
-            play a tournament given factors such as tournament prestige, injury risk etc.
-        
-        Params:
-            player (Player) - The target player
-            tournament (Tournament) - The target tournament
-        
-        Returns:
-            bool - True or False whether the player should play the tournament
-        """
-        
-        # If the player is too unfit to play return False
-        if player.fitness < 0.15 or player.isInjured:
-            return False
-
-        # Fitness penalty
-        fitnessMultiplier = max(0.5, player.fitness)
-
-        # Define the importance and/or prestige of each tournament type
-        importance = {
-            "GrandSlam" : 10,
-            "Master1000" : 7,
-            "ATP500" : 4,
-            "ATP250" : 2
-        }
-
-        # Get expected points for the tournament based on the skill level of the player
-        xPoints = self.get_skill_based_expected_points(player, tournament)
-        
-        # Ranking Pressure
-        rankingMultiplier = 1
-        if player.ranking > 100:
-            rankingMultiplier += 0.3
-        elif player.ranking > 50:
-            rankingMultiplier += 0.1
-
-        # Injury Risk Consideration
-        injuryRisk = self.get_tournament_risk(tournament, player)
-        
-        # Calculate how close the player is to their injury threshold
-        injury_proximity = player.injuryRisk / player.injuryThreshold if player.injuryThreshold > 0 else 0
-        
-        # Injury risk penalty - higher penalty as we get closer to injury threshold
-        injury_risk_multiplier = 1.0
-        if injury_proximity > 0.7: 
-            injury_risk_multiplier = 0.05
-        elif injury_proximity > 0.5:  
-            injury_risk_multiplier = 0.1
-        elif injury_proximity > 0.3:  
-            injury_risk_multiplier = 0.2
-        
-        # If we expect to get injured, what's the cost of missing future tournaments?
-        expected_injury_cost = 0
-        if injuryRisk > 0.05:
-            future_tournament_value = importance[tournament.type] * 100  
-            expected_injury_cost = injuryRisk * future_tournament_value
-        
-        # Calculate payoff score 
-        payoffScore = (xPoints * importance[tournament.type] * rankingMultiplier * fitnessMultiplier * injury_risk_multiplier) - expected_injury_cost
-
-        # Define tournament importance, this will be what the payoff function checks against
-        base_threshold = {
-            "GrandSlam": 1,  
-            "Master1000": 2,
-            "ATP500": 3,
-            "ATP250": 4
-        }
-        
-        # Increase threshold if injury risk is high
-        threshold = base_threshold[tournament.type]
-        if injury_proximity > 0.6:
-            threshold *= 1.5  
-        elif injury_proximity > 0.4:
-            threshold *= 1.2  
-        
-        # Special case: Grand Slams are so important that players might risk injury
-        if tournament.type == "GrandSlam" and injury_proximity < 0.8:
-            threshold = base_threshold[tournament.type] 
-        
-        return abs(payoffScore) > threshold
       
     def init_tournaments(self):
         """
